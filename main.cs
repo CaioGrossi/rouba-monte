@@ -62,13 +62,10 @@ public class Jogo {
         var random = new Random();
         string[] naipes = { "Ouros", "Copas", "Espadas", "Paus" };
 
-        for (int numero = 1; numero <= 13; numero++)
-        {
-            foreach (var naipe in naipes)
-            {
+        for (int numero = 1; numero <= 13; numero++) {
+            foreach (var naipe in naipes) {
                 baralho.Add(new Carta(numero, naipe));
-                if (baralho.Count == quantidadeCartas)
-                {
+                if (baralho.Count == quantidadeCartas) {
                     logWriter.WriteLine("O baralho foi embaralhado.");
                     return baralho.OrderBy(c => random.Next()).ToList();
                 }
@@ -81,8 +78,7 @@ public class Jogo {
 
     private List<Jogador> CriarJogadores(int quantidadeJogadores) {
         var jogadores = new List<Jogador>();
-        for (int i = 0; i < quantidadeJogadores; i++)
-        {
+        for (int i = 0; i < quantidadeJogadores; i++) {
             Console.Write($"Digite o nome do jogador {i + 1}: ");
             string nome = Console.ReadLine();
             jogadores.Add(new Jogador(nome));
@@ -93,10 +89,8 @@ public class Jogo {
     public void IniciarPartida() {
         logWriter.WriteLine("A partida começou.");
 
-        while (MonteDeCompra.Count > 0)
-        {
-            foreach (var jogador in Jogadores)
-            {
+        while (MonteDeCompra.Count > 0) {
+            foreach (var jogador in Jogadores) {
                 if (MonteDeCompra.Count == 0) break;
 
                 ProcessarJogada(jogador);
