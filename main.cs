@@ -3,58 +3,44 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 
-public class Carta
-{
+public class Carta {
     public int Numero { get; private set; }
     public string Naipe { get; private set; }
 
-    public Carta(int numero, string naipe)
-    {
+    public Carta(int numero, string naipe) {
         Numero = numero;
         Naipe = naipe;
     }
-
-    public override string ToString()
-    {
-        return $"{Numero} de {Naipe}";
-    }
 }
 
-public class Jogador
-{
+public class Jogador {
     public string Nome { get; private set; }
     public int Posicao { get; set; }
     public int QuantidadeCartas => Monte.Count;
     public Queue<int> HistoricoPosicoes { get; private set; }
     public List<Carta> Monte { get; private set; }
 
-    public Jogador(string nome)
-    {
+    public Jogador(string nome) {
         Nome = nome;
         Monte = new List<Carta>();
         HistoricoPosicoes = new Queue<int>();
     }
 
-    public void AdicionarAoHistorico(int posicao)
-    {
-        if (HistoricoPosicoes.Count == 5)
+    public void AdicionarAoHistorico(int posicao) {
+        if (HistoricoPosicoes.Count == 5) {
             HistoricoPosicoes.Dequeue();
+        }
         HistoricoPosicoes.Enqueue(posicao);
     }
 }
 
-public class Jogo
-{
+public class Jogo {
     private List<Carta> MonteDeCompra;
     private List<Carta> AreaDeDescarte;
     private List<Jogador> Jogadores;
-    private Random random;
     private StreamWriter logWriter;
 
-
-    public Jogo(List<Jogador> jogadores, int quantidadeCartas, int partida)
-    {
-        random = new Random();
+    public Jogo(List<Jogador> jogadores, int quantidadeCartas, int partida) {
         MonteDeCompra = new List<Carta>();
         AreaDeDescarte = new List<Carta>();
         Jogadores = jogadores;
@@ -72,9 +58,9 @@ public class Jogo
         MonteDeCompra = CriarBaralho(quantidadeCartas);
     }
 
-    private List<Carta> CriarBaralho(int quantidadeCartas)
-    {
+    private List<Carta> CriarBaralho(int quantidadeCartas) {
         var baralho = new List<Carta>();
+        var random = new Random();
         string[] naipes = { "Ouros", "Copas", "Espadas", "Paus" };
 
         for (int numero = 1; numero <= 13; numero++)
@@ -94,8 +80,7 @@ public class Jogo
         return baralho.OrderBy(c => random.Next()).ToList();
     }
 
-    private List<Jogador> CriarJogadores(int quantidadeJogadores)
-    {
+    private List<Jogador> CriarJogadores(int quantidadeJogadores) {
         var jogadores = new List<Jogador>();
         for (int i = 0; i < quantidadeJogadores; i++)
         {
@@ -106,8 +91,7 @@ public class Jogo
         return jogadores;
     }
 
-    public void IniciarPartida()
-    {
+    public void IniciarPartida() {
         logWriter.WriteLine("A partida começou.");
 
         while (MonteDeCompra.Count > 0)
@@ -123,23 +107,19 @@ public class Jogo
         FinalizarPartida();
     }
 
-    private void ProcessarJogada(Jogador jogador)
-    {
-        while (MonteDeCompra.Count > 0)
-        {
+    private void ProcessarJogada(Jogador jogador) {
+        while (MonteDeCompra.Count > 0) {
             var cartaDaVez = MonteDeCompra.Last();
             MonteDeCompra.RemoveAt(MonteDeCompra.Count - 1);
 
             logWriter.WriteLine($"{jogador.Nome} comprou a carta {cartaDaVez}.");
 
-            // Regra 1: Roubar monte de outro jogador
             var monteAlvo = Jogadores
                 .Where(j => j != jogador && j.Monte.Count > 0)
                 .OrderByDescending(j => j.Monte.Count)
                 .FirstOrDefault(j => j.Monte.Last().Numero == cartaDaVez.Numero);
 
-            if (monteAlvo != null)
-            {
+            if (monteAlvo != null) {
                 jogador.Monte.AddRange(monteAlvo.Monte);
                 monteAlvo.Monte.Clear();
                 jogador.Monte.Add(cartaDaVez);
@@ -147,10 +127,8 @@ public class Jogo
                 continue;
             }
 
-            // Regra 2: Roubar da área de descarte
             var cartaDescarte = AreaDeDescarte.FirstOrDefault(c => c.Numero == cartaDaVez.Numero);
-            if (cartaDescarte != null)
-            {
+            if (cartaDescarte != null) {
                 AreaDeDescarte.Remove(cartaDescarte);
                 jogador.Monte.Add(cartaDescarte);
                 jogador.Monte.Add(cartaDaVez);
@@ -158,15 +136,12 @@ public class Jogo
                 continue;
             }
 
-            // Regra 3: Adicionar ao próprio monte
-            if (jogador.Monte.Count > 0 && jogador.Monte.Last().Numero == cartaDaVez.Numero)
-            {
+            if (jogador.Monte.Count > 0 && jogador.Monte.Last().Numero == cartaDaVez.Numero) {
                 jogador.Monte.Add(cartaDaVez);
                 logWriter.WriteLine($"{jogador.Nome} adicionou a carta ao seu monte.");
                 continue;
             }
 
-            // Regra 4: Adicionar à área de descarte
             AreaDeDescarte.Add(cartaDaVez);
             logWriter.WriteLine($"{jogador.Nome} descartou a carta.");
             break;
@@ -178,19 +153,16 @@ public class Jogo
         var vencedores = Jogadores.OrderByDescending(j => j.Monte.Count).ToList();
         var maiorQuantidade = vencedores.First().Monte.Count;
 
-        foreach (var vencedor in vencedores.Where(j => j.Monte.Count == maiorQuantidade))
-        {
+        foreach (var vencedor in vencedores.Where(j => j.Monte.Count == maiorQuantidade)) {
             logWriter.WriteLine($"Vencedor: {vencedor.Nome} com {vencedor.Monte.Count} cartas.");
         }
 
         logWriter.WriteLine("\nRanking:");
-        foreach (var jogador in vencedores)
-        {
+        foreach (var jogador in vencedores) {
             logWriter.WriteLine($"{jogador.Nome}: {jogador.Monte.Count} cartas.");
         }
 
-        for (int i = 0; i < vencedores.Count; i++)
-        {
+        for (int i = 0; i < vencedores.Count; i++) {
             vencedores[i].AdicionarAoHistorico(i + 1);
         }
 
@@ -198,22 +170,17 @@ public class Jogo
 
         Console.Write("\nDeseja consultar o histórico de posições de um jogador? (S/N): ");
         string resposta = Console.ReadLine()?.Trim().ToUpper();
-        if (resposta == "S")
-        {
+        if (resposta == "S") {
             Console.Write("Digite o nome do jogador: ");
             string nomeJogador = Console.ReadLine();
 
             var jogadorEncontrado = Jogadores.FirstOrDefault(j => j.Nome.Equals(nomeJogador, StringComparison.OrdinalIgnoreCase));
-            if (jogadorEncontrado != null)
-            {
+            if (jogadorEncontrado != null) {
                 Console.WriteLine($"\nHistórico de posições de {jogadorEncontrado.Nome}:");
-                foreach (var posicao in jogadorEncontrado.HistoricoPosicoes)
-                {
+                foreach (var posicao in jogadorEncontrado.HistoricoPosicoes) {
                     Console.WriteLine($"Posição: {posicao}");
                 }
-            }
-            else
-            {
+            } else {
                 Console.WriteLine("Jogador não encontrado.");
             }
         }
@@ -231,32 +198,25 @@ class Program
         int partida = 1;
         List<Jogador> jogadores = null;
 
-        do
-        {
-            if (jogadores == null)
-            {
-                // Escolha do número de jogadores apenas na primeira vez
+        do {
+            if (jogadores == null) {
                 Console.Write("Digite a quantidade de jogadores: ");
                 int quantidadeJogadores = int.Parse(Console.ReadLine());
 
                 jogadores = new List<Jogador>();
-                for (int i = 0; i < quantidadeJogadores; i++)
-                {
+                for (int i = 0; i < quantidadeJogadores; i++) {
                     Console.Write($"Digite o nome do jogador {i + 1}: ");
                     string nome = Console.ReadLine();
                     jogadores.Add(new Jogador(nome));
                 }
             }
 
-            // Escolha do número de cartas
             Console.Write("Digite a quantidade de cartas no baralho: ");
             int quantidadeCartas = int.Parse(Console.ReadLine());
 
-            // Criação do jogo com os jogadores existentes
             var jogo = new Jogo(jogadores, quantidadeCartas, partida);
             jogo.IniciarPartida();
 
-            // Perguntar se deseja jogar novamente
             Console.Write("Deseja iniciar uma nova partida? (S/N): ");
             string resposta = Console.ReadLine()?.Trim().ToUpper();
             jogarNovamente = resposta == "S";
