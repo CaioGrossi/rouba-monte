@@ -45,8 +45,7 @@ public class Jogo {
         AreaDeDescarte = new List<Carta>();
         Jogadores = jogadores;
 
-        foreach (var jogador in Jogadores)
-        {
+        foreach (var jogador in Jogadores) {
             jogador.Monte.Clear();
         }
 
