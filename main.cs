@@ -35,13 +35,13 @@ public class Jogador {
 }
 
 public class Jogo {
-    private List<Carta> MonteDeCompra;
+    private Stack<Carta> MonteDeCompra;
     private List<Carta> AreaDeDescarte;
     private List<Jogador> Jogadores;
     private StreamWriter logWriter;
 
     public Jogo(List<Jogador> jogadores, int quantidadeCartas, int partida) {
-        MonteDeCompra = new List<Carta>();
+        MonteDeCompra = new Stack<Carta>();
         AreaDeDescarte = new List<Carta>();
         Jogadores = jogadores;
 
@@ -57,7 +57,7 @@ public class Jogo {
         MonteDeCompra = CriarBaralho(quantidadeCartas);
     }
 
-    private List<Carta> CriarBaralho(int quantidadeCartas) {
+    private Stack<Carta> CriarBaralho(int quantidadeCartas) {
         var baralho = new List<Carta>();
         var random = new Random();
         string[] naipes = { "Ouros", "Copas", "Espadas", "Paus" };
@@ -67,13 +67,13 @@ public class Jogo {
                 baralho.Add(new Carta(numero, naipe));
                 if (baralho.Count == quantidadeCartas) {
                     logWriter.WriteLine("O baralho foi embaralhado.");
-                    return baralho.OrderBy(c => random.Next()).ToList();
+                    return new Stack<Carta>(baralho.OrderBy(c => random.Next()).ToList());
                 }
             }
         }
 
         logWriter.WriteLine("O baralho foi embaralhado.");
-        return baralho.OrderBy(c => random.Next()).ToList();
+        return new Stack<Carta>(baralho.OrderBy(c => random.Next()).ToList());
     }
 
     private List<Jogador> CriarJogadores(int quantidadeJogadores) {
@@ -100,8 +100,7 @@ public class Jogo {
 
     private void ProcessarJogada(Jogador jogador) {
         while (MonteDeCompra.Count > 0) {
-            var cartaDaVez = MonteDeCompra.Last();
-            MonteDeCompra.RemoveAt(MonteDeCompra.Count - 1);
+            var cartaDaVez = MonteDeCompra.Pop();
 
             logWriter.WriteLine($"{jogador.Nome} comprou a carta {cartaDaVez}.");
 
@@ -185,7 +184,7 @@ class Program
     {
         Console.WriteLine("Bem-vindo ao jogo Rouba-Montes!");
 
-        bool jogarNovamente;
+        bool continuarJogando;
         int partida = 1;
         List<Jogador> jogadores = null;
 
@@ -210,11 +209,11 @@ class Program
 
             Console.Write("Deseja iniciar uma nova partida? (S/N): ");
             string resposta = Console.ReadLine()?.Trim().ToUpper();
-            jogarNovamente = resposta == "S";
+            continuarJogando = resposta == "S";
 
             partida++;
 
-        } while (jogarNovamente);
+        } while (continuarJogando);
 
         Console.WriteLine("Obrigado por jogar! Até a próxima.");
     }
