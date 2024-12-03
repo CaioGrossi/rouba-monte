@@ -91,8 +91,6 @@ public class Jogo {
 
         while (MonteDeCompra.Count > 0) {
             foreach (var jogador in Jogadores) {
-                if (MonteDeCompra.Count == 0) break;
-
                 ProcessarJogada(jogador);
             }
         }
@@ -107,16 +105,16 @@ public class Jogo {
 
             logWriter.WriteLine($"{jogador.Nome} comprou a carta {cartaDaVez}.");
 
-            var monteAlvo = Jogadores
+            var jogadorAlvo = Jogadores
                 .Where(j => j != jogador && j.Monte.Count > 0)
                 .OrderByDescending(j => j.Monte.Count)
                 .FirstOrDefault(j => j.Monte.Last().Numero == cartaDaVez.Numero);
 
-            if (monteAlvo != null) {
-                jogador.Monte.AddRange(monteAlvo.Monte);
-                monteAlvo.Monte.Clear();
+            if (jogadorAlvo != null) {
+                jogador.Monte.AddRange(jogadorAlvo.Monte);
+                jogadorAlvo.Monte.Clear();
                 jogador.Monte.Add(cartaDaVez);
-                logWriter.WriteLine($"{jogador.Nome} roubou o monte de {monteAlvo.Nome}.");
+                logWriter.WriteLine($"{jogador.Nome} roubou o monte de {jogadorAlvo.Nome}.");
                 continue;
             }
 
