@@ -41,10 +41,12 @@ public class Jogo {
     private StreamWriter logWriter;
 
     public Jogo(List<Jogador> jogadores, int quantidadeCartas, int partida) {
+        // define o que vai ser usado no jogo
         MonteDeCompra = new Stack<Carta>();
         AreaDeDescarte = new List<Carta>();
         Jogadores = jogadores;
 
+        // limpa os montes dos jogadores por causa do jogo anterior
         foreach (var jogador in Jogadores) {
             jogador.Monte.Clear();
         }
@@ -62,6 +64,7 @@ public class Jogo {
         var random = new Random();
         string[] naipes = { "Ouros", "Copas", "Espadas", "Paus" };
 
+        // cria o baralho com dada naipe e as 13 cartas
         for (int numero = 1; numero <= 13; numero++) {
             foreach (var naipe in naipes) {
                 baralho.Add(new Carta(numero, naipe));
@@ -77,6 +80,7 @@ public class Jogo {
     }
 
     private List<Jogador> CriarJogadores(int quantidadeJogadores) {
+        // criar os jogadores 
         var jogadores = new List<Jogador>();
         for (int i = 0; i < quantidadeJogadores; i++) {
             Console.Write($"Digite o nome do jogador {i + 1}: ");
@@ -89,6 +93,7 @@ public class Jogo {
     public void IniciarPartida() {
         logWriter.WriteLine("A partida começou.");
 
+        // enquanto ainda estiver carta no monte de compra, o jogo roda
         while (MonteDeCompra.Count > 0) {
             foreach (var jogador in Jogadores) {
                 ProcessarJogada(jogador);
@@ -100,15 +105,19 @@ public class Jogo {
 
     private void ProcessarJogada(Jogador jogador) {
         while (MonteDeCompra.Count > 0) {
+            // remove a carta do topo do monte de compra
             var cartaDaVez = MonteDeCompra.Pop();
 
             logWriter.WriteLine($"{jogador.Nome} comprou a carta {cartaDaVez}.");
 
+            // pesquisa nos jogadores que tem mais de um carta no monte, ordena do que tem mais
+            // carta pro menor e depois compara se a do topo do monte eh a carta da vez
             var jogadorAlvo = Jogadores
                 .Where(j => j != jogador && j.Monte.Count > 0)
                 .OrderByDescending(j => j.Monte.Count)
                 .FirstOrDefault(j => j.Monte.Last().Numero == cartaDaVez.Numero);
 
+            // se for o mesmo valor da carta da vez (existir jogador) rouba o monte dele
             if (jogadorAlvo != null) {
                 jogador.Monte.AddRange(jogadorAlvo.Monte);
                 jogadorAlvo.Monte.Clear();
@@ -117,6 +126,8 @@ public class Jogo {
                 continue;
             }
 
+            // se tiver alguma no descarte com o mesmo valor da carta da vez, ele pega e bota no monete a de 
+            // descarte e dps a da vez
             var cartaDescarte = AreaDeDescarte.FirstOrDefault(c => c.Numero == cartaDaVez.Numero);
             if (cartaDescarte != null) {
                 AreaDeDescarte.Remove(cartaDescarte);
@@ -126,12 +137,14 @@ public class Jogo {
                 continue;
             }
 
+            // se for igual a carta da vez a do topo do monte, apenas pega e coloca        
             if (jogador.Monte.Count > 0 && jogador.Monte.Last().Numero == cartaDaVez.Numero) {
                 jogador.Monte.Add(cartaDaVez);
                 logWriter.WriteLine($"{jogador.Nome} adicionou a carta ao seu monte.");
                 continue;
             }
 
+            // se nenhuma passar, coloca na carta de descarte
             AreaDeDescarte.Add(cartaDaVez);
             logWriter.WriteLine($"{jogador.Nome} descartou a carta.");
             break;
@@ -139,7 +152,8 @@ public class Jogo {
     }
 
     public void FinalizarPartida()
-    {
+    {   
+        // orderna do maior para o menor por quantiade de cartas no monte
         var vencedores = Jogadores.OrderByDescending(j => j.Monte.Count).ToList();
         var maiorQuantidade = vencedores.First().Monte.Count;
 
