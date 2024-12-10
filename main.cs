@@ -11,6 +11,11 @@ public class Carta {
         Numero = numero;
         Naipe = naipe;
     }
+
+    public override string ToString()
+    {
+        return $"{Numero} de {Naipe}";
+    }
 }
 
 public class Jogador {
@@ -58,22 +63,27 @@ public class Jogo {
     }
 
     private Stack<Carta> CriarBaralho(int quantidadeCartas) {
-        var baralho = new List<Carta>();
+        var baralhoBase = new List<Carta>();
         var random = new Random();
         string[] naipes = { "Ouros", "Copas", "Espadas", "Paus" };
 
         for (int numero = 1; numero <= 13; numero++) {
             foreach (var naipe in naipes) {
-                baralho.Add(new Carta(numero, naipe));
-                if (baralho.Count == quantidadeCartas) {
-                    logWriter.WriteLine("O baralho foi embaralhado.");
-                    return new Stack<Carta>(baralho.OrderBy(c => random.Next()).ToList());
-                }
+                baralhoBase.Add(new Carta(numero, naipe));
             }
         }
 
+        int totalCartasNoBaralho = baralhoBase.Count;
+        int quantidadeBaralhos = (int)Math.Ceiling((double)quantidadeCartas / totalCartasNoBaralho);
+
+        var baralhoFinal = new List<Carta>();
+        for (int i = 0; i < quantidadeBaralhos; i++) {
+            baralhoFinal.AddRange(baralhoBase);
+        }
+
+        var baralhoEmbaralhado = baralhoFinal.OrderBy(c => random.Next()).ToList().GetRange(0, quantidadeCartas);
         logWriter.WriteLine("O baralho foi embaralhado.");
-        return new Stack<Carta>(baralho.OrderBy(c => random.Next()).ToList());
+        return new Stack<Carta>(baralhoEmbaralhado);
     }
 
     private List<Jogador> CriarJogadores(int quantidadeJogadores) {
